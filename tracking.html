@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rastreio do Pedido</title>
+<style>
+  :root {
+    --primary: #e41d2c;
+    --muted: #6b7280;
+    --bg: #fafafa;
+  }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); margin: 0; color: #111827; }
+  .container { max-width: 720px; margin: 32px auto; padding: 0 16px; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.05); }
+  h1 { margin: 0 0 12px; font-size: 20px; }
+  .meta { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .steps { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 8px; }
+  .step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
+  .step.active { border-color: var(--primary); background: #fff5f5; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; position: relative; }
+  .step.active .dot { background: var(--primary); box-shadow: 0 0 0 0 rgba(228,29,44, .7); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(228,29,44, .6);} 70% { box-shadow: 0 0 0 12px rgba(228,29,44, 0);} 100%{ box-shadow: 0 0 0 0 rgba(228,29,44, 0);} }
+  .status { font-weight: 600; }
+  .error { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 10px; }
+  .footer { margin-top: 16px; color: var(--muted); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card" id="content">
+    <h1>Rastreio do Pedido</h1>
+    <div class="meta" id="meta">Carregando...</div>
+    <div class="steps" id="steps"></div>
+  </div>
+  <div class="footer">Atualize a página para ver possíveis mudanças de status.</div>
+</div>
+<script>
+  // Configuração padrão (pode ficar vazio se quiser usar via query endpoint)
+  const TRACKING_API_URL = '';
+
+  const STATUSES = [
+    { key: 'Pedido criado', icon: '🕑' },
+    { key: 'Pedido confirmado', icon: '☑️' },
+    { key: 'Em preparação', icon: '👨‍🍳' },
+    { key: 'Saiu para entrega', icon: '🚗💨' },
+    { key: 'Entregue', icon: '✅' }
+  ];
+
+  function getParams() {
+    const url = new URL(window.location.href);
+    return {
+      id: url.searchParams.get('id') || (url.pathname.split('/').filter(Boolean).pop() || ''),
+      endpoint: url.searchParams.get('endpoint') || ''
+    };
+  }
+
+  function render(order) {
+    const meta = document.getElementById('meta');
+    const steps = document.getElementById('steps');
+    meta.textContent = `ID: ${order.order_id} • Cliente: ${order.cliente || '—'}${order.endereco ? ' • ' + order.endereco : ''}`;
+
+    steps.innerHTML = STATUSES.map(s => {
+      const active = s.key === order.status;
+      return `
+        <div class="step ${active ? 'active' : ''}">
+          <div class="dot"></div>
+          <div class="status">${s.icon} ${s.key}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function init() {
+    const { id, endpoint } = getParams();
+    const content = document.getElementById('content');
+    if (!id) {
+      content.innerHTML = '<div class="error">ID de pedido não informado.</div>';
+      return;
+    }
+    const base = (endpoint || TRACKING_API_URL || '').trim();
+    if (!base) {
+      content.innerHTML = '<div class="error">Endpoint do rastreio não informado (TRACKING_API_URL ou ?endpoint=...).</div>';
+      return;
+    }
+    try {
+      const url = `${base}${base.includes('?') ? '&' : '?'}api=tracking&id=${encodeURIComponent(id)}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'Erro desconhecido');
+      render(json.data);
+    } catch (e) {
+      content.innerHTML = `<div class="error">Não foi possível carregar o status do pedido. ${e.message}</div>`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

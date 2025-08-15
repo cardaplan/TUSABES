@@ -1375,6 +1375,11 @@ html, body {
                             <div class="action-title">Gerenciar Itens</div>
                             <div class="action-subtitle">Adicionar e editar produtos</div>
                         </div>
+                        <div class="action-card" onclick="showScreen('pedidosScreen')">
+                            <div class="action-icon">🔔</div>
+                            <div class="action-title">Pedidos</div>
+                            <div class="action-subtitle">Novos pedidos</div>
+                        </div>
                         <div class="action-card" onclick="showScreen('categoriasScreen')">
                             <div class="action-icon">🏷️</div>
                             <div class="action-title">Categorias</div>
@@ -1626,6 +1631,29 @@ html, body {
                 </div>
             </div>
 
+            <!-- Pedidos Screen -->
+            <div class="screen" id="pedidosScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Pedidos 🔔</h2>
+                        <div class="section-subtitle">Acompanhe e atualize os pedidos</div>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Buscar por ID do pedido..." id="pedidosFilter">
+                    <div class="filter-count" id="pedidosCount">0 pedidos</div>
+                </div>
+
+                <div class="items-list" id="pedidosList"></div>
+
+                <div class="empty-state hidden" id="pedidosEmpty">
+                    <div class="empty-icon">🔔</div>
+                    <div class="empty-title">Nenhum pedido encontrado</div>
+                    <div class="empty-subtitle">Os pedidos aparecerão aqui assim que forem feitos</div>
+                </div>
+            </div>
+
 
 
 
@@ -1821,7 +1849,7 @@ function loadInitialData() {
                 'configScreen': 4,
                 'bairrosScreen': 5,
                 'horariosScreen': 6,
-
+                'pedidosScreen': 7
             };
             
             const navIndex = screenToNavMap[screenId];
@@ -1832,12 +1860,13 @@ function loadInitialData() {
 
         // Populate all screens with data
         function populateAllScreens() {
-            populateItens();
-            populateCategorias();
-            populateCupons();
-            populateConfig();
-            populateBairros();
-            populateHorarios();
+            try { populateItens(); } catch (e) { console.error('populateItens erro:', e); }
+            try { populateCategorias(); } catch (e) { console.error('populateCategorias erro:', e); }
+            try { populateCupons(); } catch (e) { console.error('populateCupons erro:', e); }
+            try { populateConfig(); } catch (e) { console.error('populateConfig erro:', e); }
+            try { populateBairros(); } catch (e) { console.error('populateBairros erro:', e); }
+            try { populateHorarios(); } catch (e) { console.error('populateHorarios erro:', e); }
+            try { populatePedidos(); } catch (e) { console.error('populatePedidos erro:', e); }
         }
 
         // Populate items screen
@@ -1846,7 +1875,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('itensEmpty');
             const countElement = document.getElementById('itensCount');
             
-            const data = sourceData || currentData['Itens'] || [];
+            const base = sourceData || currentData && currentData['Itens'];
+            const data = Array.isArray(base) ? base : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -1906,7 +1936,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('categoriasEmpty');
             const countElement = document.getElementById('categoriasCount');
             
-            const data = sourceData || currentData['Categorias'] || [];
+            const base = sourceData || currentData && currentData['Categorias'];
+            const data = Array.isArray(base) ? base : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -1960,7 +1991,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('bairrosEmpty');
             const countElement = document.getElementById('bairrosCount');
             
-            const data = sourceData || currentData['Bairros'] || [];
+            const baseB = sourceData || currentData && currentData['Bairros'];
+            const data = Array.isArray(baseB) ? baseB : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2015,7 +2047,8 @@ function populateCupons(sourceData) {
   const emptyState = document.getElementById('cuponsEmpty');
   const countElement = document.getElementById('cuponsCount');
 
-  const data = sourceData || currentData['Cupons'] || [];
+  const baseC = sourceData || currentData && currentData['Cupons'];
+  const data = Array.isArray(baseC) ? baseC : [];
   const items = data.slice(1); // Pula cabeçalho
 
   if (items.length === 0) {
@@ -2082,7 +2115,8 @@ function populateCupons(sourceData) {
             const emptyState = document.getElementById('configEmpty');
             const countElement = document.getElementById('configCount');
             
-            const data = sourceData || currentData['Config'] || [];
+            const baseCfg = sourceData || currentData && currentData['Config'];
+            const data = Array.isArray(baseCfg) ? baseCfg : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2130,7 +2164,8 @@ function populateCupons(sourceData) {
             const emptyState = document.getElementById('horariosEmpty');
             const countElement = document.getElementById('horariosCount');
             
-            const data = sourceData || currentData['Horários'] || [];
+            const baseH = sourceData || currentData && currentData['Horários'];
+            const data = Array.isArray(baseH) ? baseH : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2173,6 +2208,93 @@ function populateCupons(sourceData) {
                     </div>
                 `;
             }).join('');
+        }
+
+        // Populate pedidos screen
+        function populatePedidos(sourceData) {
+            const container = document.getElementById('pedidosList');
+            const emptyState = document.getElementById('pedidosEmpty');
+            const countElement = document.getElementById('pedidosCount');
+            
+            const base = sourceData || currentData && currentData['Pedidos'];
+            const data = Array.isArray(base) ? base : [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 pedidos';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} pedidos`;
+            
+            container.innerHTML = items.map((item, index) => {
+                const orderId = item[0] || '';
+                const cliente = item[1] || '';
+                const endereco = item[2] || '';
+                const dataHora = item[3] ? new Date(item[3]).toLocaleString('pt-BR') : '';
+                const status = item[4] || 'Pedido criado';
+                
+                return `
+                    <div class="item-card" onclick="openPedidoDetails('${orderId}', '${status.replace(/'/g, "\'")}')">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${cliente || 'Cliente'}</div>
+                                <div class="item-subtitle">ID: ${orderId}</div>
+                                <div class="item-meta">
+                                    <span style=\"color: var(--text-tertiary);\">${dataHora}</span>
+                                    ${endereco ? `<span style=\"color: var(--text-tertiary);\"> • ${endereco}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <div class="item-badge">${status}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openPedidoDetails(orderId, currentStatus) {
+            const statusSteps = [
+                { key: 'Pedido criado', icon: '🕑' },
+                { key: 'Pedido confirmado', icon: '☑️' },
+                { key: 'Em preparação', icon: '👨‍🍳' },
+                { key: 'Saiu para entrega', icon: '🚗💨' },
+                { key: 'Entregue', icon: '✅' }
+            ];
+            let selected = currentStatus || 'Pedido criado';
+            const stepHtml = statusSteps.map(step => {
+                const active = step.key === selected ? 'style="border-color: var(--primary);"' : '';
+                return `
+                    <button type=\"button\" class=\"btn btn-secondary\" ${active} onclick=\"document.querySelectorAll('.status-step').forEach(s=>s.classList.remove('active')); this.classList.add('active'); window.__selectedStatus='${step.key}';\">
+                        <span class=\"status-step\">${step.icon} ${step.key}</span>
+                    </button>
+                `;
+            }).join('');
+
+            const html = `
+                <div class=\"form-container\">
+                    <div class=\"form-header\">
+                        <h3 class=\"form-title\">Atualizar Status • ${orderId}</h3>
+                        <button class=\"form-close\" onclick=\"closeModal()\">✕</button>
+                    </div>
+                    <div class=\"form-group\">
+                        <label class=\"form-label\">Selecione o status</label>
+                        <div class=\"actions-grid\" style=\"grid-template-columns: 1fr; gap: 8px;\">
+                            ${stepHtml}
+                        </div>
+                    </div>
+                    <div class=\"form-actions\">
+                        <button type=\"button\" class=\"btn btn-secondary\" onclick=\"closeModal()\">Cancelar</button>
+                        <button type=\"button\" class=\"btn btn-primary\" onclick=\"(function(){ const s=window.__selectedStatus||'${currentStatus}'; google.script.run.withSuccessHandler(function(){ showToast('Status atualizado!', 'success'); closeModal(); loadInitialData(); }).withFailureHandler(function(e){ showToast('Erro: '+e.message, 'error'); }).updateOrderStatus('${orderId}', s); })()\">Salvar</button>
+                    </div>
+                </div>
+            `;
+            window.__selectedStatus = selected;
+            showModal(html);
         }
 
         // Setup search functionality
@@ -2393,7 +2515,8 @@ function filterAllScreens(query) {
         'Cupons': populateCupons,
         'Config': populateConfig,
         'Bairros': populateBairros,
-        'Horários': populateHorarios
+        'Horários': populateHorarios,
+        'Pedidos': populatePedidos
     };
 
     // Se a busca global estiver vazia, repopula todas as telas com os dados originais.
@@ -2516,7 +2639,8 @@ function displaySearchResults(results) {
                 'Cupons': 'cuponsList',
                 'Config': 'configList',
                 'Bairros': 'bairrosList',
-                'Horários': 'horariosList'
+                'Horários': 'horariosList',
+                'Pedidos': 'pedidosList'
             };
             
             const containerId = screenMap[sheetName];
@@ -2553,6 +2677,9 @@ function displaySearchResults(results) {
                     break;
                 case 'Horários':
                     renderHorariosResults(container, results);
+                    break;
+                case 'Pedidos':
+                    renderPedidosResults(container, results);
                     break;
             }
         }
@@ -2809,7 +2936,8 @@ function setupFilters() {
         { inputId: 'cuponsFilter', sheetName: 'Cupons', populateFunction: populateCupons },
         { inputId: 'configFilter', sheetName: 'Config', populateFunction: populateConfig },
         { inputId: 'bairrosFilter', sheetName: 'Bairros', populateFunction: populateBairros },
-        { inputId: 'horariosFilter', sheetName: 'Horários', populateFunction: populateHorarios }
+        { inputId: 'horariosFilter', sheetName: 'Horários', populateFunction: populateHorarios },
+        { inputId: 'pedidosFilter', sheetName: 'Pedidos', populateFunction: populatePedidos }
     ];
     
     filterConfigs.forEach(config => {
@@ -3249,6 +3377,35 @@ function setupFilters() {
         })
         .verificarCliente(email);
 }
+
+        // Render pedidos search results
+        function renderPedidosResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const orderId = item[0] || '';
+                const cliente = item[1] || '';
+                const endereco = item[2] || '';
+                const dataHora = item[3] ? new Date(item[3]).toLocaleString('pt-BR') : '';
+                const status = item[4] || 'Pendente';
+                return `
+                    <div class="item-card" onclick="editItem('Pedidos', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${cliente || 'Cliente'}</div>
+                                <div class="item-subtitle">ID: ${orderId}</div>
+                                <div class="item-meta">
+                                    <span style="color: var(--text-tertiary);">${dataHora}</span>
+                                    ${endereco ? `<span style=\"color: var(--text-tertiary);\"> • ${endereco}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <div class="item-badge">${status}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
     </script>
 </body>
