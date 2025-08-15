@@ -1,0 +1,3256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base target="_top" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FF9552">
+    <title>Cardaplan - Gestão Inteligente</title>
+    
+    <!-- Preload fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        :root {
+            /* Brand Colors */
+            --primary: #FF9552;
+            --primary-dark: #E6844A;
+            --primary-light: #FFB380;
+            --primary-gradient: linear-gradient(135deg, #FF9552 0%, #E6844A 100%);
+            --primary-glow: rgba(255, 149, 82, 0.3);
+            
+            /* Neutral Colors */
+            --background: #0A0A0B;
+            --surface: #111113;
+            --surface-elevated: #1A1A1D;
+            --surface-hover: #222225;
+            --border: #2A2A2D;
+            --border-light: #3A3A3D;
+            
+            /* Text Colors */
+            --text-primary: #FFFFFF;
+            --text-secondary: #B4B4B8;
+            --text-tertiary: #8A8A8F;
+            --text-muted: #6A6A6F;
+            
+            /* Status Colors */
+            --success: #10B981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --warning: #F59E0B;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --error: #EF4444;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --info: #3B82F6;
+            --info-bg: rgba(59, 130, 246, 0.1);
+            
+            /* Spacing */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 20px var(--primary-glow);
+            
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* SPLASH SCREEN STYLES */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius-2xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow-glow);
+            animation: splashLogoAnimation 2s ease-out;
+        }
+
+        .splash-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+            text-align: center;
+            animation: splashTextAnimation 2s ease-out 0.3s both;
+        }
+
+        .splash-subtitle {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            animation: splashTextAnimation 2s ease-out 0.6s both;
+        }
+
+        @keyframes splashLogoAnimation {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotate(-10deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1) rotate(5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes splashTextAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-light);
+        }
+
+        /* App Container */
+        .app {
+            min-height: 100vh;
+            max-width: 428px;
+            margin: 0 auto;
+            background: var(--background);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-md);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .notification-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .notification-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            background: var(--error);
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 44px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 0 var(--space-md) 0 44px;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: var(--transition-fast);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 16px;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: var(--space-xs);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-fast);
+            display: none;
+        }
+
+        .search-clear:hover {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .main {
+            padding: var(--space-md);
+            padding-bottom: 153px; /* Space for bottom nav */
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Module Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Dashboard */
+        .dashboard-grid {
+            display: grid;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-sm);
+        }
+
+        .metric-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .metric-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-glow);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .metric-change {
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--text-tertiary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+
+        .action-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+
+        .action-card:hover::before {
+            opacity: 0.05;
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-md);
+            font-size: 20px;
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .action-subtitle {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Data Lists */
+        .data-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .filter-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .filter-input:focus {
+            outline: none;
+        }
+
+        .filter-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-count {
+            background: var(--primary-glow);
+            color: var(--primary);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Item Cards */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .item-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            position: relative;
+        }
+
+        .item-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .item-card.new-item {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary-glow);
+            animation: newItemPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes newItemPulse {
+            0%, 100% { box-shadow: 0 0 0 1px var(--primary-glow); }
+            50% { box-shadow: 0 0 0 3px var(--primary-glow); }
+        }
+
+        .item-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: var(--space-sm);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+            line-height: 1.3;
+        }
+
+        .item-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .item-badge {
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-badge.status-active {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .item-badge.status-inactive {
+            background: var(--error-bg);
+            color: var(--error);
+        }
+
+        .item-badge.status-draft {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            margin-left: var(--space-sm);
+        }
+
+        .item-action {
+            width: 32px;
+            height: 32px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-size: 14px;
+        }
+
+        .item-action:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .item-action.edit {
+            color: var(--info);
+        }
+
+        .item-action.delete {
+            color: var(--error);
+        }
+
+        .item-action.edit:hover {
+            background: var(--info-bg);
+            border-color: var(--info);
+        }
+
+        .item-action.delete:hover {
+            background: var(--error-bg);
+            border-color: var(--error);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-md);
+            color: var(--text-tertiary);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Forms */
+        .form-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-md);
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .form-close {
+            width: 32px;
+            height: 32px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            color: var(--text-tertiary);
+        }
+
+        .form-close:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-label.required::after {
+            content: ' *';
+            color: var(--error);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: var(--transition-fast);
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: var(--space-xs);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--border);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            padding: var(--space-md) var(--space-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--surface-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--surface-elevated);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--radius-md);
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 428px;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-lg); 
+    z-index: 200;
+}
+
+        .nav-items {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            position: relative;
+            left: -17px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            position: relative;
+            min-width: 60px;
+        }
+
+        .nav-item:hover {
+            background: var(--surface-hover);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            transition: var(--transition-fast);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            transition: var(--transition-fast);
+        }
+
+        .nav-item.active .nav-label {
+            color: var(--primary);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: var(--space-md);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md) var(--space-lg);
+            margin-bottom: var(--space-sm);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            min-width: 300px;
+            max-width: 400px;
+            pointer-events: auto;
+            animation: toastSlideIn 0.3s ease-out;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+            background: var(--error-bg);
+        }
+
+        .toast.warning {
+            border-color: var(--warning);
+            background: var(--warning-bg);
+        }
+
+        .toast.info {
+            border-color: var(--info);
+            background: var(--info-bg);
+        }
+
+        .toast-icon {
+            font-size: 16px;
+        }
+
+        .toast.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast.error .toast-icon {
+            color: var(--error);
+        }
+
+        .toast.warning .toast-icon {
+            color: var(--warning);
+        }
+
+        .toast.info .toast-icon {
+            color: var(--info);
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: var(--space-xs);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-fast);
+        }
+
+        .toast-close:hover {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-md);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: var(--transition-normal);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .app {
+                max-width: 100%;
+                box-shadow: none;
+            }
+
+            .header {
+                padding: var(--space-sm) var(--space-md);
+            }
+
+            .main {
+                padding: var(--space-sm) var(--space-md);
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .mb-0 { margin-bottom: 0 !important; }
+        .mb-sm { margin-bottom: var(--space-sm) !important; }
+        .mb-md { margin-bottom: var(--space-md) !important; }
+        .mb-lg { margin-bottom: var(--space-lg) !important; }
+        .mb-xl { margin-bottom: var(--space-xl) !important; }
+
+        .mt-0 { margin-top: 0 !important; }
+        .mt-sm { margin-top: var(--space-sm) !important; }
+        .mt-md { margin-top: var(--space-md) !important; }
+        .mt-lg { margin-top: var(--space-lg) !important; }
+        .mt-xl { margin-top: var(--space-xl) !important; }
+
+//Estilo verificando botão Entrar!
+  .btn-loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading .spinner {
+    border: 3px solid transparent;
+    border-top: 3px solid white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+ 
+html, body {
+  height: 0px;
+  min-height: 795px;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+}
+
+
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <img src="https://i.ibb.co/x8CnD7Ls/Imagem-02.jpg" alt="Cardaplan Logo" class="splash-logo">
+        <h1 class="splash-title">Cardaplan</h1>
+        <p class="splash-subtitle">Gestão Inteligente</p>
+    </div>
+
+    <!-- Login Screen -->
+<div class="app" id="loginScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;">
+    <img src="https://i.ibb.co/x8CnD7Ls/Imagem-02.jpg" 
+         alt="Logo" 
+         style="max-width: 150px; margin-bottom: 20px; border-radius: 10px;">
+    <h2 style="margin-bottom: 20px;">Acesse sua conta</h2>
+    <input type="email" id="loginEmail" placeholder="Digite seu email" 
+        style="padding: 10px; width: 60%; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+    <button id="btnEntrar" onclick="fazerLogin()" class="btn btn-primary" style="width: 60%;">Entrar</button>
+    <p id="loginMessage" style="color: red; margin-top: 10px;"></p>
+</div>
+
+<!-- Loader fixo -->
+
+
+    <!-- Main App -->
+    <div class="app" id="mainApp">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <div class="logo-section">
+                      <img src="https://i.ibb.co/x8CnD7Ls/Imagem-02.jpg" alt="Cardaplan Logo" style="width: 20%; height: 20%; filter: drop-shadow(0 0 30px var(--primary-glow)); border-radius: 10px;">
+                      <h1 class="app-title">Cardaplan</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="notification-btn" onclick="showNotifications()">
+                        <span>👤</span>
+                        <div class="notification-badge"></div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar em todas as abas..." id="globalSearch">
+                <span class="search-icon">🔍</span>
+                <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Dashboard Screen -->
+            <div class="screen active" id="dashboardScreen">
+                <div id="dashboardContent">
+                <div class="dashboard-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total de Itens</div>
+                            <div class="metric-icon">📦</div>
+                        </div>
+                        <div class="metric-value" id="totalItens">0</div>
+                        <div class="metric-change">
+                            <span>📈</span>
+                            <span id="itensAtivos">0</span> ativos
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Categorias</div>
+                            <div class="metric-icon">🏷️</div>
+                        </div>
+                        <div class="metric-value" id="totalCategorias">0</div>
+                        <div class="metric-change">
+                            <span>📊</span>
+                            Organizadas
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Cupons Ativos</div>
+                            <div class="metric-icon">🎟️</div>
+                        </div>
+                        <div class="metric-value" id="cuponsAtivos">0</div>
+                        <div class="metric-change">
+                            <span>💰</span>
+                            <span id="totalCupons">0</span> total
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Bairros</div>
+                            <div class="metric-icon">🏘️</div>
+                        </div>
+                        <div class="metric-value" id="totalBairros">0</div>
+                        <div class="metric-change">
+                            <span>🚚</span>
+                            Entrega
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Horários</div>
+                            <div class="metric-icon">🕐</div>
+                        </div>
+                        <div class="metric-value" id="totalHorarios">0</div>
+                        <div class="metric-change">
+                            <span>⏰</span>
+                            Configurados
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h2 class="section-title">Ações Rápidas</h2>
+                    <div class="actions-grid">
+                        <div class="action-card" onclick="showScreen('itensScreen')">
+                            <div class="action-icon">📦</div>
+                            <div class="action-title">Gerenciar Itens</div>
+                            <div class="action-subtitle">Adicionar e editar produtos</div>
+                        </div>
+                        <div class="action-card" onclick="showScreen('categoriasScreen')">
+                            <div class="action-icon">🏷️</div>
+                            <div class="action-title">Categorias</div>
+                            <div class="action-subtitle">Organizar produtos</div>
+                        </div>
+                        <div class="action-card" onclick="showScreen('cuponsScreen')">
+                            <div class="action-icon">🎟️</div>
+                            <div class="action-title">Cupons</div>
+                            <div class="action-subtitle">Criar promoções</div>
+                        </div>
+                        <div class="action-card" onclick="showScreen('configScreen')">
+                            <div class="action-icon">⚙️</div>
+                            <div class="action-title">Configurações</div>
+                            <div class="action-subtitle">Ajustar sistema</div>
+                        </div>
+                        <div class="action-card" onclick="showAddBairroForm()">
+                            <div class="action-icon">🏘️</div>
+                            <div class="action-title">Novo Bairro</div>
+                            <div class="action-subtitle">Expandir entrega</div>
+                        </div>
+                        <div class="action-card" onclick="showScreen('horariosScreen')">
+                            <div class="action-icon">🕐</div>
+                            <div class="action-title">Horários</div>
+                            <div class="action-subtitle">Configurar funcionamento</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ NOVO: Contêiner para os Resultados da Busca (começa oculto) -->
+    <div id="searchResultsContainer" class="hidden">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Resultados da Busca</h2>
+                <div class="section-subtitle" id="searchResultsCount">Encontrado 0 itens</div>
+            </div>
+        </div>
+        <div class="items-list" id="searchResultsList">
+            <!-- Os resultados da busca serão injetados aqui -->
+        </div>
+        <div class="empty-state hidden" id="searchEmptyState">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">Nenhum resultado encontrado</div>
+            <div class="empty-subtitle">Tente usar termos de busca diferentes.</div>
+        </div>
+    </div>
+
+</div>
+
+            <!-- Itens Screen -->
+            <div class="screen" id="itensScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Itens</h2>
+                        <div class="section-subtitle">Gerencie seus produtos</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddItemForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar itens..." id="itensFilter">
+                    <div class="filter-count" id="itensCount">0 itens</div>
+                </div>
+
+                <div class="items-list" id="itensList">
+                    <!-- Items will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="itensEmpty">
+                    <div class="empty-icon">📦</div>
+                    <div class="empty-title">Nenhum item encontrado</div>
+                    <div class="empty-subtitle">Adicione seu primeiro produto para começar</div>
+                    <button class="btn btn-primary" onclick="showAddItemForm()">
+                        <span>➕</span>
+                        Adicionar Item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Categorias Screen -->
+            <div class="screen" id="categoriasScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Categorias</h2>
+                        <div class="section-subtitle">Organize seus produtos</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddCategoriaForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar categorias..." id="categoriasFilter">
+                    <div class="filter-count" id="categoriasCount">0 categorias</div>
+                </div>
+
+                <div class="items-list" id="categoriasList">
+                    <!-- Categories will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="categoriasEmpty">
+                    <div class="empty-icon">🏷️</div>
+                    <div class="empty-title">Nenhuma categoria encontrada</div>
+                    <div class="empty-subtitle">Crie categorias para organizar seus produtos</div>
+                    <button class="btn btn-primary" onclick="showAddCategoriaForm()">
+                        <span>➕</span>
+                        Adicionar Categoria
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cupons Screen -->
+            <div class="screen" id="cuponsScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Cupons</h2>
+                        <div class="section-subtitle">Gerencie promoções</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddCupomForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar cupons..." id="cuponsFilter">
+                    <div class="filter-count" id="cuponsCount">0 cupons</div>
+                </div>
+
+                <div class="items-list" id="cuponsList">
+                    <!-- Coupons will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="cuponsEmpty">
+                    <div class="empty-icon">🎟️</div>
+                    <div class="empty-title">Nenhum cupom encontrado</div>
+                    <div class="empty-subtitle">Crie cupons para oferecer descontos</div>
+                    <button class="btn btn-primary" onclick="showAddCupomForm()">
+                        <span>➕</span>
+                        Adicionar Cupom
+                    </button>
+                </div>
+            </div>
+
+            <!-- Config Screen -->
+            <div class="screen" id="configScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Configurações</h2>
+                        <div class="section-subtitle">Ajuste o sistema</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddConfigForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar configurações..." id="configFilter">
+                    <div class="filter-count" id="configCount">0 configurações</div>
+                </div>
+
+                <div class="items-list" id="configList">
+                    <!-- Config items will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="configEmpty">
+                    <div class="empty-icon">⚙️</div>
+                    <div class="empty-title">Nenhuma configuração encontrada</div>
+                    <div class="empty-subtitle">Adicione configurações do sistema</div>
+                    <button class="btn btn-primary" onclick="showAddConfigForm()">
+                        <span>➕</span>
+                        Adicionar Configuração
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bairros Screen -->
+            <div class="screen" id="bairrosScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Bairros</h2>
+                        <div class="section-subtitle">Gerencie bairros e taxas de entrega</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddBairroForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar bairros..." id="bairrosFilter">
+                    <div class="filter-count" id="bairrosCount">0 bairros</div>
+                </div>
+
+                <div class="items-list" id="bairrosList">
+                    <!-- Bairros will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="bairrosEmpty">
+                    <div class="empty-icon">🏘️</div>
+                    <div class="empty-title">Nenhum bairro encontrado</div>
+                    <div class="empty-subtitle">Adicione bairros para configurar taxas de entrega</div>
+                    <button class="btn btn-primary" onclick="showAddBairroForm()">
+                        <span>➕</span>
+                        Adicionar Bairro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Horarios Screen -->
+            <div class="screen" id="horariosScreen">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Horários</h2>
+                        <div class="section-subtitle">Configure horários de funcionamento</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddHorarioForm()">
+                        <span>➕</span>
+                        Adicionar
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Filtrar horários..." id="horariosFilter">
+                    <div class="filter-count" id="horariosCount">0 horários</div>
+                </div>
+
+                <div class="text">
+                    <div class="section-title">⚠️ Não edite ou exclua 'Dia da Semana'</div>
+                </div>
+
+                <div class="items-list" id="horariosList">
+                    <!-- Horarios will be populated here -->
+                </div>
+
+                <div class="empty-state hidden" id="horariosEmpty">
+                    <div class="empty-icon">🕐</div>
+                    <div class="empty-title">Nenhum horário encontrado</div>
+                    <div class="empty-subtitle">Configure os horários de funcionamento</div>
+                    <button class="btn btn-primary" onclick="showAddHorarioForm()">
+                        <span>➕</span>
+                        Adicionar Horário
+                    </button>
+                </div>
+            </div>
+
+
+
+
+            <!-- Dynamic Form Container -->
+            <div id="formContainer"></div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active" onclick="showScreen('dashboardScreen')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Dashboard</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('itensScreen')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Itens</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('categoriasScreen')">
+                    <div class="nav-icon">🏷️</div>
+                    <div class="nav-label">Categorias</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('cuponsScreen')">
+                    <div class="nav-icon">🎟️</div>
+                    <div class="nav-label">Cupons</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('configScreen')">
+                    <div class="nav-icon">⚙️</div>
+                    <div class="nav-label">Config</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('bairrosScreen')">
+                    <div class="nav-icon">🏘️</div>
+                    <div class="nav-label">Bairros</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('horariosScreen')">
+                    <div class="nav-icon">🕐</div>
+                    <div class="nav-label">Horários</div>
+                </div>
+
+            </div>
+        </nav>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" id="modal" onclick="event.stopPropagation()">
+            <!-- Modal content will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentData = {};
+        let currentConfigs = {};
+        let currentEditingItem = null;
+        let currentEditingSheet = null;
+        let visualizacoesChart = null;
+        let produtosChart = null;
+
+// Página de Login impedindo de ir para o Dashboard sem antes digitar o E-mail
+
+        document.addEventListener('DOMContentLoaded', function() {
+    // Splash screen por 2s
+    setTimeout(() => {
+        document.getElementById('splashScreen').classList.add('fade-out');
+        setTimeout(() => {
+            document.getElementById('splashScreen').style.display = 'none';
+            // Mostra tela de login em vez de carregar direto
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }, 500);
+    }, 2000);
+
+    // Configuração de busca e filtros
+    setupSearch();
+    setupFilters();
+});
+
+
+//Salva o E-mail na página de login para o cliente não precisar digitar novamente
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Recupera email salvo e preenche no campo
+    const emailSalvo = localStorage.getItem('usuarioEmail');
+    if (emailSalvo) {
+        document.getElementById('loginEmail').value = emailSalvo;
+    }
+});
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show splash screen for 2 seconds, then load app
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('splashScreen').style.display = 'none';
+                    loadInitialData();
+                }, 500);
+            }, 2000);
+
+            // Setup search functionality
+            setupSearch();
+            
+            // Setup filter functionality for each screen
+            setupFilters();
+        });
+
+        let dadosJaCarregados = false; // flag global
+
+function loadInitialData() {
+    // Só mostra "Carregando dados..." se ainda não mostrou antes
+    if (!dadosJaCarregados) {
+        showToast('Carregando dados...', 'info');
+    }
+
+    Promise.all([
+        new Promise((resolve, reject) => {
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .getAllSheetConfigs();
+        }),
+        new Promise((resolve, reject) => {
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .getAllSheetsData();
+        }),
+        new Promise((resolve, reject) => {
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .getDashboardStats();
+        })
+    ])
+    .then(([configs, data, stats]) => {
+        currentConfigs = configs;
+        currentData = data;
+        
+        updateDashboardStats(stats);
+        populateAllScreens();
+
+        // Só mostra "Dados carregados" se ainda não mostrou antes
+        if (!dadosJaCarregados) {
+            showToast('Dados carregados com sucesso!', 'success');
+        }
+
+        dadosJaCarregados = true; // marca como já carregado
+    })
+    .catch(error => {
+        console.error('Erro ao carregar dados:', error);
+        showToast('Erro ao carregar dados: ' + error.message, 'error');
+    });
+}
+
+
+        // Update dashboard statistics
+        function updateDashboardStats(stats) {
+            document.getElementById('totalItens').textContent = stats.totalItens || 0;
+            document.getElementById('itensAtivos').textContent = stats.itensAtivos || 0;
+            document.getElementById('totalCategorias').textContent = stats.totalCategorias || 0;
+            document.getElementById('totalCupons').textContent = stats.totalCupons || 0;
+            document.getElementById('cuponsAtivos').textContent = stats.cuponsAtivos || 0;
+            document.getElementById('totalBairros').textContent = stats.totalBairros || 0;
+            document.getElementById('totalHorarios').textContent = stats.totalHorarios || 0;
+        }
+
+        // Screen navigation
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show target screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate corresponding nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            const screenToNavMap = {
+                'dashboardScreen': 0,
+                'itensScreen': 1,
+                'categoriasScreen': 2,
+                'cuponsScreen': 3,
+                'configScreen': 4,
+                'bairrosScreen': 5,
+                'horariosScreen': 6,
+
+            };
+            
+            const navIndex = screenToNavMap[screenId];
+            if (navIndex !== undefined && navItems[navIndex]) {
+                navItems[navIndex].classList.add('active');
+            }
+        }
+
+        // Populate all screens with data
+        function populateAllScreens() {
+            populateItens();
+            populateCategorias();
+            populateCupons();
+            populateConfig();
+            populateBairros();
+            populateHorarios();
+        }
+
+        // Populate items screen
+        function populateItens(sourceData) {
+            const container = document.getElementById('itensList');
+            const emptyState = document.getElementById('itensEmpty');
+            const countElement = document.getElementById('itensCount');
+            
+            const data = sourceData || currentData['Itens'] || [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 itens';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} itens`;
+            
+            const headers = data[0] || [];
+            container.innerHTML = items.map((item, index) => {
+                const sku = item[0] || '';
+                const nome = item[1] || '';
+                const categoria = item[2] || '';
+                const descricao = item[3] || '';
+                const preco = item[4] || 0;
+                const status = item[5] || 'Inativo';
+                const classificacao = item[6] || '';
+                const observacoes = item[7] || '';
+                const fotoUrl = item[8] || '';
+                
+                const statusClass = status.toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Itens', ${index + 2})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${nome}</div>
+                                <div class="item-subtitle">SKU: ${sku}</div>
+                                <div class="item-meta">
+                                    <div class="item-badge ${statusClass}">${status}</div>
+                                    ${categoria ? `<span style="color: var(--text-tertiary);">${categoria}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-price">R$ ${parseFloat(preco || 0).toFixed(2)}</div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Itens', ${index + 2})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Itens', ${index + 2})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        ${descricao ? `<div style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-sm);">${descricao}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Populate categories screen
+        function populateCategorias(sourceData) {
+            const container = document.getElementById('categoriasList');
+            const emptyState = document.getElementById('categoriasEmpty');
+            const countElement = document.getElementById('categoriasCount');
+            
+            const data = sourceData || currentData['Categorias'] || [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 categorias';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} categorias`;
+            
+            container.innerHTML = items.map((item, index) => {
+                const nome = item[0] || '';
+                const titulo = item[1] || '';
+                const descricao = item[2] || '';
+                const ordem = item[3] || '';
+                const status = item[4] || 'Inativo';
+                
+                const statusClass = status.toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Categorias', ${index + 2})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${titulo}</div>
+                                <div class="item-subtitle">${nome}</div>
+                                <div class="item-meta">
+                                    <div class="item-badge ${statusClass}">${status}</div>
+                                    ${ordem ? `<span style="color: var(--text-tertiary);">Ordem: ${ordem}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Categorias', ${index + 2})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Categorias', ${index + 2})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        ${descricao ? `<div style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-sm);">${descricao}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+         // Populate bairros screen
+        function populateBairros(sourceData) {
+            const container = document.getElementById('bairrosList');
+            const emptyState = document.getElementById('bairrosEmpty');
+            const countElement = document.getElementById('bairrosCount');
+            
+            const data = sourceData || currentData['Bairros'] || [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 bairros';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} bairros`;
+            
+            container.innerHTML = items.map((item, index) => {
+                const nomeBairro = item[0] || '';
+                const valorTaxa = item[1] || 0;
+                
+                return `
+                    <div class="item-card" onclick="editItem('Bairros', ${index + 2})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${nomeBairro}</div>
+                                <div class="item-subtitle">Taxa de Entrega</div>
+                                <div class="item-meta">
+                                    <span style="color: var(--text-tertiary);">🚚 Entrega disponível</span>
+                                </div>
+                            </div>
+                            <div class="item-price">R$ ${parseFloat(valorTaxa || 0).toFixed(2)}</div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Bairros', ${index + 2})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Bairros', ${index + 2})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Populate coupons screen
+        // ✅ Função para converter string "dd/mm/yyyy" em objeto Date com fuso horário UTC-3
+function parseDateBR(dateStr) {
+  const [dia, mes, ano] = dateStr.split('/');
+  return new Date(`${ano}-${mes}-${dia}T00:00:00-03:00`);
+}
+
+// ✅ Substitua a função populateCupons pelo código abaixo:
+function populateCupons(sourceData) {
+  const container = document.getElementById('cuponsList');
+  const emptyState = document.getElementById('cuponsEmpty');
+  const countElement = document.getElementById('cuponsCount');
+
+  const data = sourceData || currentData['Cupons'] || [];
+  const items = data.slice(1); // Pula cabeçalho
+
+  if (items.length === 0) {
+    container.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    countElement.textContent = '0 cupons';
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+  countElement.textContent = `${items.length} cupons`;
+
+  container.innerHTML = items.map((item, index) => {
+    const codigo = item[0] || '';
+    const tipo = item[1] || '';
+    const valor = item[2] || '0%';
+    const dataInicioStr = item[3] || '';
+    const dataFimStr = item[4] || '';
+
+    let dataInicio = '';
+    let dataFim = '';
+    let isActive = false;
+
+    try {
+      const inicioDate = parseDateBR(dataInicioStr);
+      const fimDate = parseDateBR(dataFimStr);
+      const hoje = new Date();
+
+      dataInicio = inicioDate.toLocaleDateString('pt-BR');
+      dataFim = fimDate.toLocaleDateString('pt-BR');
+      isActive = hoje >= inicioDate && hoje <= fimDate;
+    } catch (e) {
+      dataInicio = dataInicioStr;
+      dataFim = dataFimStr;
+    }
+
+    const statusClass = isActive ? 'status-active' : 'status-inactive';
+    const statusText = isActive ? 'Ativo' : 'Inativo';
+
+    return `
+      <div class="item-card" onclick="editItem('Cupons', ${index + 2})">
+        <div class="item-header">
+          <div class="item-info">
+            <div class="item-title">${codigo}</div>
+            <div class="item-subtitle">${tipo}: ${valor}</div>
+            <div class="item-meta">
+              <div class="item-badge ${statusClass}">${statusText}</div>
+              <span style="color: var(--text-tertiary);">${dataInicio} - ${dataFim}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="item-action edit" onclick="event.stopPropagation(); editItem('Cupons', ${index + 2})" title="Editar">✏️</button>
+            <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Cupons', ${index + 2})" title="Excluir">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+        // Populate config screen
+        function populateConfig(sourceData) {
+            const container = document.getElementById('configList');
+            const emptyState = document.getElementById('configEmpty');
+            const countElement = document.getElementById('configCount');
+            
+            const data = sourceData || currentData['Config'] || [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 configurações';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} configurações`;
+            
+            container.innerHTML = items.map((item, index) => {
+                const section = item[0] || '';
+                const key = item[1] || '';
+                const value = item[2] || '';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Config', ${index + 2})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${key}</div>
+                                <div class="item-subtitle">Seção: ${section}</div>
+                                <div class="item-meta">
+                                    <span style="color: var(--text-secondary);">${value}</span>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Config', ${index + 2})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Config', ${index + 2})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Populate horarios screen
+        function populateHorarios(sourceData) {
+            const container = document.getElementById('horariosList');
+            const emptyState = document.getElementById('horariosEmpty');
+            const countElement = document.getElementById('horariosCount');
+            
+            const data = sourceData || currentData['Horários'] || [];
+            const items = data.slice(1); // Skip header row
+            
+            if (items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                countElement.textContent = '0 horários';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            countElement.textContent = `${items.length} horários`;
+            
+            container.innerHTML = items.map((item, index) => {
+                const diaSemana = item[0] || '';
+                const periodo1 = item[1] || '';
+                const periodo2 = item[2] || '';
+                const periodo3 = item[3] || '';
+                
+                const periodos = [periodo1, periodo2, periodo3].filter(p => p && p.trim() !== '');
+                
+                return `
+                    <div class="item-card" onclick="editItem('Horários', ${index + 2})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${diaSemana}</div>
+                                <div class="item-subtitle">${periodos.length} período(s) configurado(s)</div>
+                                <div class="item-meta">
+                                    ${periodos.map(p => `<span style="color: var(--text-secondary); background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px; font-size: 12px;">${p}</span>`).join(' ')}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Horários', ${index + 2})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Horários', ${index + 2})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Setup search functionality
+        // ✅ Função NOVA (busca em tempo real no frontend)
+function setupSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    const searchClear = document.getElementById('searchClear');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        
+        if (query.length > 0) {
+            searchClear.style.display = 'block';
+        } else {
+            searchClear.style.display = 'none';
+        }
+        
+        // Desativa os filtros locais para não haver conflito
+        document.querySelectorAll('.filter-input').forEach(input => {
+            if (input.id !== 'globalSearch') {
+                input.value = '';
+            }
+        });
+
+        // Chama a nova função para filtrar todas as telas
+        filterAllScreens(query);
+    });
+}
+
+// ✅ 1. SUBSTITUA ESTA FUNÇÃO
+function setupSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    const searchClear = document.getElementById('searchClear');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        
+        if (query.length > 0) {
+            searchClear.style.display = 'block';
+        } else {
+            searchClear.style.display = 'none';
+        }
+        
+        // Chama a nova função para exibir resultados no dashboard
+        displayDashboardSearchResults(query);
+    });
+}
+
+// ✅ 3. ADICIONE TODAS ESTAS NOVAS FUNÇÕES "render...ResultCard"
+
+function renderItemResultCard(item, rowIndex, sheetName) {
+    const [sku, nome, categoria, , preco, status] = item;
+    const statusClass = (status || '').toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${nome || 'Item sem nome'} <span class="item-badge status-draft">Item</span></div>
+                    <div class="item-subtitle">SKU: ${sku || 'N/A'} | Categoria: ${categoria || 'N/A'}</div>
+                    <div class="item-meta"><div class="item-badge ${statusClass}">${status || 'Inativo'}</div></div>
+                </div>
+                <div class="item-price">R$ ${parseFloat(preco || 0).toFixed(2)}</div>
+            </div>
+        </div>`;
+}
+
+function renderCategoriaResultCard(item, rowIndex, sheetName) {
+    const [nome, titulo, , , status] = item;
+    const statusClass = (status || '').toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${titulo || nome} <span class="item-badge status-draft">Categoria</span></div>
+                    <div class="item-subtitle">Nome interno: ${nome || 'N/A'}</div>
+                    <div class="item-meta"><div class="item-badge ${statusClass}">${status || 'Inativo'}</div></div>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderCupomResultCard(item, rowIndex, sheetName) {
+    const [codigo, tipo, valor, dataInicioStr, dataFimStr] = item;
+    const hoje = new Date();
+    const inicio = dataInicioStr ? parseDateBR(dataInicioStr) : null;
+    const fim = dataFimStr ? parseDateBR(dataFimStr) : null;
+    const isActive = inicio && fim && hoje >= inicio && hoje <= fim;
+    const statusClass = isActive ? 'status-active' : 'status-inactive';
+    const statusText = isActive ? 'Ativo' : 'Inativo';
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${codigo || 'Cupom sem código'} <span class="item-badge status-draft">Cupom</span></div>
+                    <div class="item-subtitle">${tipo || 'N/A'}: ${valor || 'N/A'}</div>
+                    <div class="item-meta"><div class="item-badge ${statusClass}">${statusText}</div></div>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderBairroResultCard(item, rowIndex, sheetName) {
+    const [nomeBairro, valorTaxa] = item;
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${nomeBairro || 'Bairro sem nome'} <span class="item-badge status-draft">Bairro</span></div>
+                    <div class="item-subtitle">Taxa de Entrega</div>
+                </div>
+                <div class="item-price">R$ ${parseFloat(valorTaxa || 0).toFixed(2)}</div>
+            </div>
+        </div>`;
+}
+
+function renderConfigResultCard(item, rowIndex, sheetName) {
+    const [section, key, value] = item;
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${key || 'Chave sem nome'} <span class="item-badge status-draft">Config</span></div>
+                    <div class="item-subtitle">Seção: ${section || 'N/A'}</div>
+                    <div class="item-meta" style="font-family: monospace; color: var(--text-tertiary);">${value || ''}</div>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderHorarioResultCard(item, rowIndex, sheetName) {
+    const [diaSemana, p1, p2, p3] = item;
+    const periodos = [p1, p2, p3].filter(Boolean).join(', ');
+    return `
+        <div class="item-card" onclick="editItem('${sheetName}', ${rowIndex})">
+            <div class="item-header">
+                <div class="item-info">
+                    <div class="item-title">${diaSemana || 'Dia não definido'} <span class="item-badge status-draft">Horário</span></div>
+                    <div class="item-subtitle">Períodos: ${periodos || 'Nenhum'}</div>
+                </div>
+            </div>
+        </div>`;
+}
+
+
+// ✅ 2. ADICIONE ESTA NOVA FUNÇÃO
+function displayDashboardSearchResults(query) {
+    const dashboardContent = document.getElementById('dashboardContent');
+    const searchResultsContainer = document.getElementById('searchResultsContainer');
+    const searchResultsList = document.getElementById('searchResultsList');
+    const searchResultsCount = document.getElementById('searchResultsCount');
+    const searchEmptyState = document.getElementById('searchEmptyState');
+
+    // Se a busca estiver vazia, restaura o dashboard original
+    if (!query) {
+        dashboardContent.classList.remove('hidden');
+        searchResultsContainer.classList.add('hidden');
+        searchResultsList.innerHTML = ''; // Limpa resultados anteriores
+        return;
+    }
+
+    // Se há uma busca, esconde o conteúdo normal do dashboard e mostra a área de resultados
+    dashboardContent.classList.add('hidden');
+    searchResultsContainer.classList.remove('hidden');
+    searchResultsList.innerHTML = ''; // Limpa para nova busca
+
+    let allResultsHtml = '';
+    let totalResults = 0;
+
+    // Mapeia o nome da aba para a função que renderiza seu card de resultado
+    const renderers = {
+        'Itens': renderItemResultCard,
+        'Categorias': renderCategoriaResultCard,
+        'Cupons': renderCupomResultCard,
+        'Bairros': renderBairroResultCard,
+        'Config': renderConfigResultCard,
+        'Horários': renderHorarioResultCard
+    };
+
+    // Itera sobre todas as abas de dados
+    for (const sheetName in currentData) {
+        if (currentData.hasOwnProperty(sheetName) && renderers[sheetName]) {
+            const sheetData = currentData[sheetName];
+            if (!sheetData || sheetData.length < 1) continue;
+
+            const dataRows = sheetData.slice(1); // Pula cabeçalho
+
+            dataRows.forEach((row, index) => {
+                const rowString = row.join(' ').toLowerCase();
+                if (rowString.includes(query)) {
+                    // Se encontrar, chama a função de renderização específica para aquele tipo de dado
+                    allResultsHtml += renderers[sheetName](row, index + 2, sheetName);
+                    totalResults++;
+                }
+            });
+        }
+    }
+
+    // Atualiza a lista de resultados e a contagem
+    searchResultsList.innerHTML = allResultsHtml;
+    searchResultsCount.textContent = `Encontrado(s) ${totalResults} resultado(s)`;
+
+    // Mostra ou esconde a mensagem de "nenhum resultado"
+    if (totalResults === 0) {
+        searchEmptyState.classList.remove('hidden');
+    } else {
+        searchEmptyState.classList.add('hidden');
+    }
+}
+
+
+// ✅ Adicione esta NOVA função ao seu script
+// ✅ 2. NOVA LÓGICA PARA A BUSCA GLOBAL
+// ✅ 2. ADICIONE ESTA NOVA FUNÇÃO
+function filterAllScreens(query) {
+    const screenRenderers = {
+        'Itens': populateItens,
+        'Categorias': populateCategorias,
+        'Cupons': populateCupons,
+        'Config': populateConfig,
+        'Bairros': populateBairros,
+        'Horários': populateHorarios
+    };
+
+    // Se a busca global estiver vazia, repopula todas as telas com os dados originais.
+    if (!query) {
+        populateAllScreens();
+        return;
+    }
+
+    // Itera sobre cada aba de dados (Itens, Categorias, etc.)
+    for (const sheetName in currentData) {
+        if (currentData.hasOwnProperty(sheetName) && screenRenderers[sheetName]) {
+            const originalSheetData = currentData[sheetName];
+            if (!originalSheetData || originalSheetData.length < 1) continue; // Pula se não houver dados
+
+            const headers = originalSheetData[0];
+            const dataRows = originalSheetData.slice(1);
+
+            // Filtra as linhas da aba atual que correspondem à busca
+            const filteredRows = dataRows.filter(row => {
+                // Concatena todos os valores da linha em uma string e busca nela
+                return row.join(' ').toLowerCase().includes(query);
+            });
+
+            // Cria um conjunto de dados temporário apenas com os resultados filtrados
+            const tempData = [headers, ...filteredRows];
+            
+            // Chama a função de renderização da tela (ex: populateItens) com os dados filtrados
+            screenRenderers[sheetName](tempData);
+        }
+    }
+}
+
+        // Perform global search
+        // ✅ Função NOVA (corrigida)
+function performGlobalSearch(query) {
+    if (!query || query.trim().length < 2) {
+        // Se a busca for limpa, recarrega os dados originais
+        populateAllScreens();
+        return;
+    }
+    
+    showToast('Buscando...', 'info');
+    
+    google.script.run
+        .withSuccessHandler(function(results) {
+            showToast(`${results.length} resultado(s) encontrado(s).`, 'success');
+            displaySearchResults(results);
+        })
+        .withFailureHandler(function(error) {
+            console.error('Erro na busca:', error);
+            showToast('Erro ao realizar a busca: ' + error.message, 'error');
+        })
+        .searchAllSheets(query);
+}
+
+        function searchAllSheets(query) {
+    const lowerQuery = query.toLowerCase();
+
+    const resultsBySheet = {};
+    
+    for (let sheetName in currentData) {
+        const rows = currentData[sheetName];
+        const headers = rows[0];
+        const dataRows = rows.slice(1);
+        
+        const matches = dataRows.map((row, index) => {
+            const rowString = row.join(' ').toLowerCase();
+            if (rowString.includes(lowerQuery)) {
+                return {
+                    rowIndex: index + 2, // +2 para incluir cabeçalho e base 1
+                    data: row
+                };
+            }
+            return null;
+        }).filter(Boolean);
+        
+        if (matches.length > 0) {
+            resultsBySheet[sheetName] = matches;
+        }
+    }
+
+    updateScreenWithResults(resultsBySheet);
+}
+
+        // Display search results
+        // ✅ Função NOVA (corrigida)
+function displaySearchResults(results) {
+    // Primeiro, limpa todas as listas existentes
+    Object.keys(currentConfigs).forEach(sheetName => {
+        const containerId = (sheetName.toLowerCase() + 'List').replace('ó', 'o').replace('ç', 'c').replace('õ', 'o');
+        const container = document.getElementById(containerId);
+        const emptyStateId = containerId.replace('List', 'Empty');
+        const emptyState = document.getElementById(emptyStateId);
+        
+        if (container) container.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+    });
+
+    // Agrupa os resultados por aba
+    const groupedResults = {};
+    results.forEach(result => {
+        if (!groupedResults[result.sheet]) {
+            groupedResults[result.sheet] = [];
+        }
+        groupedResults[result.sheet].push(result);
+    });
+    
+    // Atualiza cada tela com seus resultados filtrados
+    Object.keys(groupedResults).forEach(sheetName => {
+        updateScreenWithResults(sheetName, groupedResults[sheetName]);
+    });
+}
+
+
+        // Update screen with search results
+        function updateScreenWithResults(sheetName, results) {
+            const screenMap = {
+                'Itens': 'itensList',
+                'Categorias': 'categoriasList',
+                'Cupons': 'cuponsList',
+                'Config': 'configList',
+                'Bairros': 'bairrosList',
+                'Horários': 'horariosList'
+            };
+            
+            const containerId = screenMap[sheetName];
+            if (!containerId) return;
+            
+            const container = document.getElementById(containerId);
+            const emptyStateId = containerId.replace('List', 'Empty').replace('s', 's');
+            const emptyState = document.getElementById(emptyStateId);
+            
+            if (results.length === 0) {
+                container.innerHTML = '';
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            if (emptyState) emptyState.classList.add('hidden');
+            
+            // Render results based on sheet type
+            switch (sheetName) {
+                case 'Itens':
+                    renderItensResults(container, results);
+                    break;
+                case 'Categorias':
+                    renderCategoriasResults(container, results);
+                    break;
+                case 'Cupons':
+                    renderCuponsResults(container, results);
+                    break;
+                case 'Config':
+                    renderConfigResults(container, results);
+                    break;
+                case 'Bairros':
+                    renderBairrosResults(container, results);
+                    break;
+                case 'Horários':
+                    renderHorariosResults(container, results);
+                    break;
+            }
+        }
+
+        // Render horarios search results
+        function renderHorariosResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const index = result.rowIndex - 2; // Adjust for header and 0-based index
+                
+                const diaSemana = item[0] || '';
+                const periodo1 = item[1] || '';
+                const periodo2 = item[2] || '';
+                const periodo3 = item[3] || '';
+                
+                const periodos = [periodo1, periodo2, periodo3].filter(p => p && p.trim() !== '');
+                
+                return `
+                    <div class="item-card" onclick="editItem('Horários', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${diaSemana}</div>
+                                <div class="item-subtitle">${periodos.length} período(s) configurado(s)</div>
+                                <div class="item-meta">
+                                    ${periodos.map(p => `<span style="color: var(--text-secondary); background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px; font-size: 12px;">${p}</span>`).join(' ')}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Horários', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Horários', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render items search results
+        function renderItensResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const sku = item[0] || '';
+                const nome = item[1] || '';
+                const categoria = item[2] || '';
+                const descricao = item[3] || '';
+                const preco = item[4] || 0;
+                const status = item[5] || 'Inativo';
+                
+                const statusClass = status.toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Itens', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${nome}</div>
+                                <div class="item-subtitle">SKU: ${sku}</div>
+                                <div class="item-meta">
+                                    <div class="item-badge ${statusClass}">${status}</div>
+                                    ${categoria ? `<span style="color: var(--text-tertiary);">${categoria}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-price">R$ ${parseFloat(preco || 0).toFixed(2)}</div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Itens', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Itens', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        ${descricao ? `<div style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-sm);">${descricao}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render categories search results
+        function renderCategoriasResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const nome = item[0] || '';
+                const titulo = item[1] || '';
+                const descricao = item[2] || '';
+                const ordem = item[3] || '';
+                const status = item[4] || 'Inativo';
+                
+                const statusClass = status.toLowerCase() === 'ativo' ? 'status-active' : 'status-inactive';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Categorias', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${titulo}</div>
+                                <div class="item-subtitle">${nome}</div>
+                                <div class="item-meta">
+                                    <div class="item-badge ${statusClass}">${status}</div>
+                                    ${ordem ? `<span style="color: var(--text-tertiary);">Ordem: ${ordem}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Categorias', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Categorias', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        ${descricao ? `<div style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-sm);">${descricao}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+         // Render bairros search results
+        function renderBairrosResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const nomeBairro = item[0] || '';
+                const valorTaxa = item[1] || 0;
+                
+                return `
+                    <div class="item-card" onclick="editItem('Bairros', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${nomeBairro}</div>
+                                <div class="item-subtitle">Taxa de Entrega</div>
+                                <div class="item-meta">
+                                    <span style="color: var(--text-tertiary);">🚚 Entrega disponível</span>
+                                </div>
+                            </div>
+                            <div class="item-price">R$ ${parseFloat(valorTaxa || 0).toFixed(2)}</div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Bairros', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Bairros', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render coupons search results
+        function renderCuponsResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const codigo = item[0] || '';
+                const tipo = item[1] || '';
+                const valor = item[2] || '0%';
+                const dataInicio = item[3] ? new Date(item[3]).toLocaleDateString('pt-BR') : '';
+                const dataFim = item[4] ? new Date(item[4]).toLocaleDateString('pt-BR') : '';
+                
+                const hoje = new Date();
+                const inicio = item[3] ? new Date(item[3]) : null;
+                const fim = item[4] ? new Date(item[4]) : null;
+                const isActive = inicio && fim && hoje >= inicio && hoje <= fim;
+                const statusClass = isActive ? 'status-active' : 'status-inactive';
+                const statusText = isActive ? 'Ativo' : 'Inativo';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Cupons', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${codigo}</div>
+                                <div class="item-subtitle">${tipo}: ${valor}</div>
+                                <div class="item-meta">
+                                    <div class="item-badge ${statusClass}">${statusText}</div>
+                                    <span style="color: var(--text-tertiary);">${dataInicio} - ${dataFim}</span>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Cupons', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Cupons', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render config search results
+        function renderConfigResults(container, results) {
+            container.innerHTML = results.map(result => {
+                const item = result.data;
+                const section = item[0] || '';
+                const key = item[1] || '';
+                const value = item[2] || '';
+                
+                return `
+                    <div class="item-card" onclick="editItem('Config', ${result.rowIndex})">
+                        <div class="item-header">
+                            <div class="item-info">
+                                <div class="item-title">${key}</div>
+                                <div class="item-subtitle">Seção: ${section}</div>
+                                <div class="item-meta">
+                                    <span style="color: var(--text-secondary);">${value}</span>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action edit" onclick="event.stopPropagation(); editItem('Config', ${result.rowIndex})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="item-action delete" onclick="event.stopPropagation(); deleteItem('Config', ${result.rowIndex})" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Clear search
+        // ✅ Função NOVA (melhorada)
+function clearSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    searchInput.value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    
+    // Chama a função de filtro com uma string vazia para recarregar tudo
+    filterAllScreens('');
+}
+
+// ✅ 4. SUBSTITUA ESTA FUNÇÃO
+function clearSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    searchInput.value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    
+    // Chama a função com uma string vazia para restaurar o dashboard
+    displayDashboardSearchResults('');
+}
+
+        // Setup filters for each screen
+        // ✅ 3. FUNÇÃO DE FILTROS LOCAIS CORRIGIDA
+// ✅ 3. SUBSTITUA ESTA FUNÇÃO
+function setupFilters() {
+    const filterConfigs = [
+        { inputId: 'itensFilter', sheetName: 'Itens', populateFunction: populateItens },
+        { inputId: 'categoriasFilter', sheetName: 'Categorias', populateFunction: populateCategorias },
+        { inputId: 'cuponsFilter', sheetName: 'Cupons', populateFunction: populateCupons },
+        { inputId: 'configFilter', sheetName: 'Config', populateFunction: populateConfig },
+        { inputId: 'bairrosFilter', sheetName: 'Bairros', populateFunction: populateBairros },
+        { inputId: 'horariosFilter', sheetName: 'Horários', populateFunction: populateHorarios }
+    ];
+    
+    filterConfigs.forEach(config => {
+        const input = document.getElementById(config.inputId);
+        if (input) {
+            input.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+
+                // Limpa a busca global se um filtro local for usado
+                document.getElementById('globalSearch').value = '';
+                document.getElementById('searchClear').style.display = 'none';
+
+                const originalSheetData = currentData[config.sheetName] || [];
+                
+                if (!query) {
+                    // Se o filtro local estiver vazio, mostra todos os dados daquela aba
+                    config.populateFunction(originalSheetData);
+                    return;
+                }
+
+                if (!originalSheetData || originalSheetData.length < 1) return;
+
+                const headers = originalSheetData[0];
+                const dataRows = originalSheetData.slice(1);
+
+                // Filtra as linhas da aba específica
+                const filteredRows = dataRows.filter(row => {
+                    return row.join(' ').toLowerCase().includes(query);
+                });
+
+                const tempData = [headers, ...filteredRows];
+                config.populateFunction(tempData);
+            });
+        }
+    });
+}
+
+        // Filter screen data
+        function filterScreenData(populateFunction, query) {
+            if (!query) {
+                populateFunction();
+                return;
+            }
+            
+            // This is a simplified local filter
+            // For more complex filtering, you might want to call the backend
+            populateFunction();
+            
+            // Then hide items that don't match the query
+            document.querySelectorAll('.item-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Show add item form
+        function showAddItemForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Itens';
+            showDynamicForm('Itens');
+        }
+
+        // Show add categoria form
+        function showAddCategoriaForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Categorias';
+            showDynamicForm('Categorias');
+        }
+
+        // Show add cupom form
+        function showAddCupomForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Cupons';
+            showDynamicForm('Cupons');
+        }
+
+        // Show add config form
+        function showAddConfigForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Config';
+            showDynamicForm('Config');
+        }
+
+        // Show add horario form
+        function showAddHorarioForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Horários';
+            showDynamicForm('Horários');
+        }
+
+        // Show add bairro form (special case)
+        function showAddBairroForm() {
+            currentEditingItem = null;
+            currentEditingSheet = 'Bairros';
+            showDynamicForm('Bairros');
+        }
+
+        // Edit item
+        function editItem(sheetName, rowIndex) {
+            currentEditingSheet = sheetName;
+            currentEditingItem = rowIndex;
+            showDynamicForm(sheetName, rowIndex);
+        }
+
+        // Delete item
+        function deleteItem(sheetName, rowIndex) {
+            if (!confirm('Tem certeza que deseja excluir este item?')) {
+                return;
+            }
+            
+            showToast('Excluindo item...', 'info');
+            
+            google.script.run
+                .withSuccessHandler(() => {
+                    showToast('Item excluído com sucesso!', 'success');
+                    loadInitialData();
+                })
+                .withFailureHandler(error => {
+                    console.error('Erro ao excluir item:', error);
+                    showToast('Erro ao excluir item: ' + error.message, 'error');
+                })
+                .deleteRow(sheetName, rowIndex);
+        }
+
+        // Show dynamic form in modal
+        function showDynamicForm(sheetName, rowIndex = null) {
+            const config = currentConfigs[sheetName];
+            if (!config) {
+                showToast('Configuração não encontrada para ' + sheetName, 'error');
+                return;
+            }
+            
+            const isEdit = rowIndex !== null;
+            const title = isEdit ? `Editar ${config.displayName}` : `Adicionar ${config.displayName}`;
+            
+            let currentValues = [];
+            if (isEdit && currentData[sheetName] && currentData[sheetName][rowIndex - 1]) {
+                currentValues = currentData[sheetName][rowIndex - 1];
+            }
+            
+            const formHtml = `
+                <div class="form-container">
+                    <div class="form-header">
+                        <h3 class="form-title">${title}</h3>
+                        <button class="form-close" onclick="closeModal()">✕</button>
+                    </div>
+                    
+                    <form id="dynamicForm" onsubmit="submitDynamicForm(event)">
+                        ${config.fields.map((field, index) => {
+                            const value = currentValues[index] || '';
+                            return generateFieldHtml(field, value, sheetName);
+                        }).join('')}
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="loading hidden"></span>
+                                ${isEdit ? 'Atualizar' : 'Adicionar'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showModal(formHtml);
+        }
+
+        // Generate field HTML
+        function generateFieldHtml(field, value, sheetName) {
+            const fieldId = `field_${field.name.replace(/\s+/g, '_')}`;
+            const required = field.required ? 'required' : '';
+            const requiredClass = field.required ? 'required' : '';
+            
+            let inputHtml = '';
+            
+            switch (field.type) {
+                case 'text':
+                case 'url':
+                    inputHtml = `<input type="text" class="form-input" id="${fieldId}" name="${field.name}" value="${value}" ${required} placeholder="Digite ${field.name.toLowerCase()}...">`;
+                    break;
+                    
+                case 'textarea':
+                    inputHtml = `<textarea class="form-textarea" id="${fieldId}" name="${field.name}" ${required} placeholder="Digite ${field.name.toLowerCase()}...">${value}</textarea>`;
+                    break;
+                    
+                case 'number':
+                case 'currency':
+                    inputHtml = `<input type="number" class="form-input" id="${fieldId}" name="${field.name}" value="${value}" ${required} step="0.01" min="0" placeholder="0.00">`;
+                    break;
+                    
+                case 'percentage':
+                    inputHtml = `<input type="text" class="form-input" id="${fieldId}" name="${field.name}" value="${value}" ${required} placeholder="Ex: 10%">`;
+                    break;
+                    
+                case 'date':
+                case 'date':
+                    const dateValue = value ? new Date(value).toISOString().split('T')[0] : '';
+                    inputHtml = `<input type="date" class="form-input" id="${fieldId}" name="${field.name}" value="${dateValue}" ${required}>`;
+                    break;
+                    
+                case 'select':
+                    if (field.options) {
+                        // Static options
+                        const options = field.options.map(option => 
+                            `<option value="${option}" ${value === option ? 'selected' : ''}>${option}</option>`
+                        ).join('');
+                        inputHtml = `
+                            <select class="form-select" id="${fieldId}" name="${field.name}" ${required}>
+                                <option value="">Selecione...</option>
+                                ${options}
+                            </select>
+                        `;
+                    } else if (field.source) {
+                        // Dynamic options from another sheet
+                        const sourceData = currentData[field.source] || [];
+                        const options = sourceData.slice(1).map(row => {
+                            const optionValue = row[0] || '';
+                            return `<option value="${optionValue}" ${value === optionValue ? 'selected' : ''}>${optionValue}</option>`;
+                        }).join('');
+                        inputHtml = `
+                            <select class="form-select" id="${fieldId}" name="${field.name}" ${required}>
+                                <option value="">Selecione...</option>
+                                ${options}
+                            </select>
+                        `;
+                    }
+                    break;
+                    
+                default:
+                    inputHtml = `<input type="text" class="form-input" id="${fieldId}" name="${field.name}" value="${value}" ${required}>`;
+            }
+            
+            return `
+                <div class="form-group">
+                    <label class="form-label ${requiredClass}" for="${fieldId}">${field.name}</label>
+                    ${inputHtml}
+                </div>
+            `;
+        }
+
+        // Hide dynamic form
+        function hideDynamicForm() {
+            closeModal();
+        }
+
+        // Submit dynamic form
+        function submitDynamicForm(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const config = currentConfigs[currentEditingSheet];
+            
+            if (!config) {
+                showToast('Configuração não encontrada', 'error');
+                return;
+            }
+            
+           // Collect form data in the correct order
+            const rowData = config.fields.map(field => {
+                const value = formData.get(field.name) || '';
+                
+                // Process value based on field type
+                switch (field.type) {
+                    case 'number':
+                    case 'currency':
+                        return value ? parseFloat(value) : '';
+                    case 'percentage':
+                        return value;
+                    case 'date':
+                    case 'date':
+                        return value ? new Date(value).toISOString() : '';
+                    default:
+                        return value;
+                }
+            });
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const loadingSpan = submitBtn.querySelector('.loading');
+            submitBtn.disabled = true;
+            loadingSpan.classList.remove('hidden');
+            
+            const isEdit = currentEditingItem !== null;
+            const operation = isEdit ? 'updateRow' : 'addRow';
+            const args = isEdit ? [currentEditingSheet, currentEditingItem, rowData] : [currentEditingSheet, rowData];
+            
+            google.script.run
+                .withSuccessHandler(() => {
+                    showToast(`${config.displayName} ${isEdit ? 'atualizado' : 'adicionado'} com sucesso!`, 'success');
+                    hideDynamicForm();
+                    loadInitialData();
+                })
+                .withFailureHandler(error => {
+                    console.error('Erro ao salvar:', error);
+                    showToast('Erro ao salvar: ' + error.message, 'error');
+                    submitBtn.disabled = false;
+                    loadingSpan.classList.add('hidden');
+                })
+                [operation](...args);
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || icons.info}</div>
+                <div class="toast-message">${message}</div>
+                <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, duration);
+        }
+
+        // Show notifications
+        function showNotifications() {
+            showToast('Cardaplan - Perfil Conectado', 'info');
+        }
+
+        // Modal functions
+        function showModal(content) {
+            const modal = document.getElementById('modal');
+            const overlay = document.getElementById('modalOverlay');
+            
+            modal.innerHTML = content;
+            overlay.classList.add('active');
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // Analytics functions
+
+
+        // Utility functions
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value || 0);
+        }
+
+        function formatDate(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleDateString('pt-BR');
+        }
+
+        function formatDateTime(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleString('pt-BR');
+        }
+
+        // Error handling
+        window.addEventListener('error', function(event) {
+            console.error('Erro global:', event.error);
+            showToast('Ocorreu um erro inesperado. Tente novamente.', 'error');
+        });
+
+        // Prevent form submission on Enter key (except in textareas)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA' && event.target.type !== 'submit') {
+                event.preventDefault();
+            }
+        });
+
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const badge = document.querySelector('.notification-badge');
+                setTimeout(() => {
+           if (badge) {
+              badge.style.backgroundColor = 'lightgreen';
+      }
+    }, 5000);
+  });
+
+
+  function fazerLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const msg = document.getElementById('loginMessage');
+    const btn = document.getElementById('btnEntrar');
+    const originalText = btn.innerHTML;
+
+    if (!email) {
+        msg.textContent = "Digite seu e-mail.";
+        return;
+    }
+
+    // Mostra spinner só no botão
+    btn.innerHTML = `<div class="spinner"></div> Verificando login...`;
+    btn.classList.add("btn-loading");
+    msg.textContent = "";
+
+    google.script.run
+        .withSuccessHandler(function(resposta) {
+            btn.innerHTML = originalText;
+            btn.classList.remove("btn-loading");
+
+            if (resposta.sucesso) {
+                localStorage.setItem('usuarioEmail', email);
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                showToast("Bem-vindo, " + resposta.nome, "success");
+                loadInitialData();
+            } else {
+                msg.textContent = resposta.motivo;
+            }
+        })
+        .withFailureHandler(function(err) {
+            btn.innerHTML = originalText;
+            btn.classList.remove("btn-loading");
+            msg.textContent = "Erro no login: " + err.message;
+        })
+        .verificarCliente(email);
+}
+
+    </script>
+</body>
+</html>
+
