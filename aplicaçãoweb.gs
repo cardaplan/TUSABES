@@ -261,12 +261,7 @@ function getAllSheetsData() {
     
     for (const sheetName of sheetNames) {
       try {
-        if (sheetName === 'Horários') {
-          // Para a aba 'Horários', obter dados a partir da linha 3
-          result[sheetName] = getSheetData(sheetName, 2); // Assumindo que getSheetData pode receber um parâmetro de linha inicial
-        } else {
-          result[sheetName] = getSheetData(sheetName);
-        }
+        result[sheetName] = getSheetData(sheetName);
         Logger.log(`[getAllSheetsData] Dados obtidos para "${sheetName}": ${result[sheetName].length} linhas`);
       } catch (error) {
         Logger.log(`[getAllSheetsData] Erro ao obter dados de "${sheetName}": ${error.message}`);

@@ -36,8 +36,7 @@
   <div class="footer">Atualize a página para ver possíveis mudanças de status.</div>
 </div>
 <script>
-  // Configure esta URL com o link publicado do seu Apps Script (Web App)
-  // Exemplo: const TRACKING_API_URL = 'https://script.google.com/macros/s/SEU_ID/exec';
+  // Configuração padrão (pode ficar vazio se quiser usar via query endpoint)
   const TRACKING_API_URL = '';
 
   const STATUSES = [
@@ -48,12 +47,12 @@
     { key: 'Entregue', icon: '✅' }
   ];
 
-  function getOrderIdFromUrl() {
+  function getParams() {
     const url = new URL(window.location.href);
-    const qp = url.searchParams.get('id');
-    if (qp) return qp;
-    const parts = url.pathname.split('/').filter(Boolean);
-    return parts[parts.length - 1] || '';
+    return {
+      id: url.searchParams.get('id') || (url.pathname.split('/').filter(Boolean).pop() || ''),
+      endpoint: url.searchParams.get('endpoint') || ''
+    };
   }
 
   function render(order) {
@@ -73,18 +72,19 @@
   }
 
   async function init() {
-    const id = getOrderIdFromUrl();
+    const { id, endpoint } = getParams();
     const content = document.getElementById('content');
     if (!id) {
       content.innerHTML = '<div class="error">ID de pedido não informado.</div>';
       return;
     }
-    if (!TRACKING_API_URL) {
-      content.innerHTML = '<div class="error">TRACKING_API_URL não configurado na página de rastreio.</div>';
+    const base = (endpoint || TRACKING_API_URL || '').trim();
+    if (!base) {
+      content.innerHTML = '<div class="error">Endpoint do rastreio não informado (TRACKING_API_URL ou ?endpoint=...).</div>';
       return;
     }
     try {
-      const url = `${TRACKING_API_URL}?api=tracking&id=${encodeURIComponent(id)}`;
+      const url = `${base}${base.includes('?') ? '&' : '?'}api=tracking&id=${encodeURIComponent(id)}`;
       const res = await fetch(url, { cache: 'no-store' });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Erro desconhecido');

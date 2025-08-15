@@ -10223,8 +10223,15 @@
             try {
                 const envioConfig = getEnvioConfig();
                 if (orderData.deliveryType === 'delivery') {
-                    const trackingBase = envioConfig.tracking_url_base || '';
-                    const trackingLink = trackingBase ? `${trackingBase.replace(/\/?$/, '/')}${encodeURIComponent(orderData.orderId)}` : '';
+                    const trackingBase = (envioConfig.tracking_url_base || '').trim();
+                    let trackingLink = '';
+                    if (trackingBase) {
+                        const join = trackingBase.includes('?') ? '&' : '?';
+                        trackingLink = `${trackingBase}${join}id=${encodeURIComponent(orderData.orderId)}`;
+                        if ((envioConfig.tracking_api_url || '').trim()) {
+                            trackingLink += `&endpoint=${encodeURIComponent(envioConfig.tracking_api_url.trim())}`;
+                        }
+                    }
                     if (orderData.orderId) {
                         message += `\n🆔 *ID do Pedido:* ${orderData.orderId}\n`;
                     }
