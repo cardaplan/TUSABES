@@ -81,6 +81,20 @@ const SHEET_CONFIG = {
       { name: 'data_fim', type: 'dd/mm/aaaa', required: true }
     ]
   },
+  'Pedidos': {
+    displayName: 'Pedidos',
+    icon: '🔔',
+    fields: [
+      { name: 'order_id', type: 'text', required: true },
+      { name: 'cliente', type: 'text', required: true },
+      { name: 'endereco', type: 'text', required: false },
+      { name: 'data_hora', type: 'datetime', required: true },
+      { name: 'status', type: 'select', required: true, options: ['Pedido criado', 'Pedido confirmado', 'Em preparação', 'Saiu para entrega', 'Entregue'] },
+      { name: 'whatsapp', type: 'text', required: false },
+      { name: 'delivery_type', type: 'text', required: false },
+      { name: 'ultima_atualizacao', type: 'datetime', required: false }
+    ]
+  },
   'Analytics': {
     displayName: 'Analytics',
     icon: '📊',
@@ -105,17 +119,19 @@ const cache = {
 /**
  * Função principal para servir a aplicação web
  */
-function doGet() {
+function doGet(e) {
   try {
+    // API de rastreio JSON
+    if (e && e.parameter && e.parameter.api === 'tracking') {
+      return handleTrackingApi(e.parameter);
+    }
+
     Logger.log('[doGet] Iniciando aplicação web');
-    
     const htmlOutput = HtmlService.createHtmlOutputFromFile("Index")
       .setTitle("Cardaplan - Gestão Inteligente")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-    
     Logger.log('[doGet] Aplicação web carregada com sucesso');
     return htmlOutput;
-    
   } catch (error) {
     Logger.log(`[doGet] ERRO: ${error.message}`);
     console.error("Erro ao carregar página:", error);
@@ -1270,5 +1286,165 @@ function fazerLogin() {
             msg.textContent = "Erro no login: " + err.message;
         })
         .verificarCliente(email);
+}
+
+function ensureSheetExistsWithHeaders(sheetName) {
+  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(sheetName);
+  }
+  if (sheet.getLastRow() === 0) {
+    var headers = SHEET_CONFIG[sheetName].fields.map(function(f){ return f.name; });
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  return sheet;
+}
+
+function handleTrackingApi(params) {
+  try {
+    var action = (params.action || '').toLowerCase();
+
+    if (action === 'upsert') {
+      ensureSheetExistsWithHeaders('Pedidos');
+      var order = {
+        order_id: params.order_id || params.id,
+        cliente: params.cliente || '',
+        endereco: params.endereco || '',
+        data_hora: params.data_hora || new Date().toISOString(),
+        status: params.status || 'Pedido criado',
+        whatsapp: params.whatsapp || '',
+        delivery_type: params.delivery_type || ''
+      };
+      var saved = createOrUpdateOrder(order);
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, data: saved }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === 'updatestatus') {
+      var orderIdToUpdate = params.order_id || params.id;
+      var newStatus = params.status || '';
+      if (!orderIdToUpdate || !newStatus) {
+        return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'missing_params' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      var updated = updateOrderStatus(orderIdToUpdate, newStatus);
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, data: updated }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Default: get status by id
+    var orderId = params.id || params.order_id;
+    if (!orderId) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'missing_id' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var order = getOrderById(orderId);
+    if (!order) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'not_found' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, data: order }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Cria ou atualiza (idempotente) um pedido na aba "Pedidos"
+ * Retorna o objeto salvo
+ */
+function createOrUpdateOrder(order) {
+  var sheetName = 'Pedidos';
+  var headers = SHEET_CONFIG[sheetName].fields.map(function(f){ return f.name; });
+  var data = getSheetData(sheetName);
+  var rows = data.slice(1);
+  var index = -1;
+  for (var i = 0; i < rows.length; i++) {
+    if ((rows[i][0] || '') === order.order_id) { // coluna 1 = order_id
+      index = i + 2; // linha real na planilha
+      break;
+    }
+  }
+
+  var now = new Date();
+  var rowData = [
+    order.order_id,
+    order.cliente || '',
+    order.endereco || '',
+    order.data_hora ? new Date(order.data_hora) : now,
+    order.status || 'Pedido criado',
+    order.whatsapp || '',
+    order.delivery_type || '',
+    now // ultima_atualizacao
+  ];
+
+  if (index === -1) {
+    addRow(sheetName, rowData);
+  } else {
+    updateRow(sheetName, index, rowData);
+  }
+
+  return getOrderById(order.order_id);
+}
+
+/** Retorna array de pedidos (com cabeçalho já mapeado) */
+function getOrders() {
+  var sheetName = 'Pedidos';
+  var data = getSheetData(sheetName);
+  if (data.length <= 1) return [];
+  var rows = data.slice(1);
+  return rows.map(function(row, idx) {
+    return {
+      rowIndex: idx + 2,
+      order_id: row[0] || '',
+      cliente: row[1] || '',
+      endereco: row[2] || '',
+      data_hora: row[3] || '',
+      status: row[4] || 'Pedido criado',
+      whatsapp: row[5] || '',
+      delivery_type: row[6] || '',
+      ultima_atualizacao: row[7] || ''
+    };
+  });
+}
+
+/** Busca pedido por ID */
+function getOrderById(orderId) {
+  var orders = getOrders();
+  for (var i = 0; i < orders.length; i++) {
+    if (orders[i].order_id === orderId) return orders[i];
+  }
+  return null;
+}
+
+/** Atualiza status do pedido e timestamp */
+function updateOrderStatus(orderId, status) {
+  var sheetName = 'Pedidos';
+  var data = getSheetData(sheetName);
+  if (data.length <= 1) throw new Error('Nenhum pedido cadastrado');
+  var rows = data.slice(1);
+  var idx = -1;
+  for (var i = 0; i < rows.length; i++) {
+    if ((rows[i][0] || '') === orderId) { idx = i + 2; break; }
+  }
+  if (idx === -1) throw new Error('Pedido não encontrado');
+
+  var row = rows[idx - 2];
+  var newRow = [
+    row[0], // order_id
+    row[1], // cliente
+    row[2], // endereco
+    row[3], // data_hora
+    status, // status
+    row[5], // whatsapp
+    row[6], // delivery_type
+    new Date() // ultima_atualizacao
+  ];
+  updateRow(sheetName, idx, newRow);
+  return getOrderById(orderId);
 }
 

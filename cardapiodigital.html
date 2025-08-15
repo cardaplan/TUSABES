@@ -348,7 +348,6 @@
         .slide-up {
             animation: slideUp 0.3s ease-out;
         }
-        
         @keyframes slideUp {
             from {
                 opacity: 0;
@@ -661,10 +660,6 @@
         
      
     </style>
-
-
-
-  
 </head>
 <body style="background-color: var(--cor-fundo) !important;">
 
@@ -812,6 +807,7 @@
                         </svg>
                         <span class="font-medium" style="color: var(--cor-primaria) !important; font-weight: 500; transition: color 0.3s ease; font-size: 0.9em;">Ver Horários</span>
                     </div>
+                    <a id="footer-tracking" href="#" class="flex items-center space-x-2 transition-all duration-300" style="display: none; color: var(--cor-primaria) !important; text-decoration: none; font-weight: 500;" onmouseover="this.style.color='var(--cor-secundaria)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.color='var(--cor-primaria)'; this.style.transform='translateY(0)'"><span style="color: var(--cor-primaria) !important; transition: color 0.3s ease;">🔎 Rastrear pedido</span></a>
                 </div>
                 
                 <!-- Social Icons -->
@@ -992,7 +988,6 @@
             </div>
         </div>
     </div>
-
     <!-- Checkout Modal -->
     <div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50" onclick="closeCheckout(event)">
         <div class="flex items-start justify-center min-h-screen p-4 pt-8">
@@ -1657,7 +1652,6 @@
             
             return data;
         }
-
         // Function to load CSV data
         async function loadCSVData(url) {
             try {
@@ -1990,7 +1984,6 @@
                         label2: parts[2] ? parts[2].trim() : ''
                     };
                 }
-
                 // Configure local option (step2_opc1)
                 if (localOption) {
                     const config = parseOptionConfig(checkoutConfig.step2_opc1);
@@ -2081,6 +2074,7 @@
         function updateFooterWithConfig() {
             const contactInfo = getContactInfo();
             const socialMedia = getSocialMedia();
+            const envioConfig = getEnvioConfig();
             
             // Update footer company name
             const footerCompanyNameElement = document.getElementById('footer-company-name');
@@ -2150,6 +2144,15 @@
                 footerEmailLinkElement.style.display = 'block';
             } else if (footerEmailLinkElement) {
                 footerEmailLinkElement.style.display = 'none';
+            }
+
+            // Footer tracking link
+            const footerTrackingElement = document.getElementById('footer-tracking');
+            if (footerTrackingElement && envioConfig.tracking_url_base) {
+                footerTrackingElement.href = envioConfig.tracking_url_base;
+                footerTrackingElement.style.display = 'flex';
+            } else if (footerTrackingElement) {
+                footerTrackingElement.style.display = 'none';
             }
             
             // Update Google Reviews section
@@ -2238,7 +2241,9 @@
         function getEnvioConfig() {
             return {
                 whatsapp_web: getConfig('envio', 'whatsapp_web', 'Sim'),
-                webhook_url: getConfig('envio', 'webhook_url', '')
+                webhook_url: getConfig('envio', 'webhook_url', ''),
+                tracking_url_base: getConfig('envio', 'tracking_url_base', ''),
+                tracking_api_url: getConfig('envio', 'tracking_api_url', '')
             };
         }
         
@@ -2316,7 +2321,6 @@
             // Se não se encaixa em nenhum padrão conhecido, assumir como chave aleatória
             return 'aleatoria';
         }
-
         function formatPixKey(pixKey, type) {
             const cleanKey = pixKey.trim();
             
@@ -2648,7 +2652,6 @@
                          onerror="if (typeof warnLog === 'function') warnLog('❌ Logo do preloader falhou ao carregar:', '${logoURL}'); this.parentElement.style.display='none';" 
                          onload="if (typeof debugLog === 'function') debugLog('✅ Logo do preloader carregado com sucesso'); this.style.opacity='1';">
                 </div>` : '';
-            
             const preloaderHTML = `
                 <div id="preloader" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
                     <div class="text-center">
@@ -3238,7 +3241,8 @@
             customerName: '',
             paymentMethod: '',
             changeAmount: '',
-            notes: ''
+            notes: '',
+            orderId: ''
         };
 
         // Parse variations from classificacaoAdicional
@@ -3256,7 +3260,6 @@
                 /^(#[^:]+:|~Var:\s*[^:]+:|Var:\s*[^:]+:)(radio|checkbox):/.test(line) ||
                 /maxselect=\d+:/.test(line)
             );
-            
             debugLog('🆕 Tem padrão novo formato?', hasNewFormatPattern);
             
             if (hasNewFormatPattern) {
@@ -3608,7 +3611,6 @@
                 });
             });
         }
-
         // Render menu sections
         function renderMenu() {
             const container = document.getElementById('menu-content');
@@ -3946,7 +3948,6 @@
             // Inicializar botões de limpar seleção
             setTimeout(toggleClearButtons, 200);
         }
-
         // Handle variation change (formato legado)
         function handleVariationChange(index, name, price, isRequired) {
             debugLog('🔧 handleVariationChange chamada:', { index, name, price, isRequired });
@@ -4610,7 +4611,6 @@
             if (typeof debugLog === 'function') {
                 debugLog('😫 Scroll disabled during cart modal');
             }
-            
             modal.classList.remove('hidden');
         }
         // Close cart
@@ -4939,7 +4939,6 @@
                 }, 500); // Aguardar 500ms para garantir que os campos foram renderizados
             }
         }
-
         // Limpa estado e UI de forma de pagamento (quando usuário volta do Step 3)
         function resetPaymentState() {
             try {
@@ -5873,7 +5872,7 @@
                         if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
                             bairroWrapper.innerHTML = `<select id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\"><option value=\"\">Selecione...</option></select>`;
                         } else {
-                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
                         }
                     }
                 }
@@ -6629,7 +6628,6 @@
                 return false;
             }
         };
-        
         // Função para forçar timezone manualmente (use no console)
         window.forceTimezone = function(timezone) {
             debugLog('🔧 FORÇANDO TIMEZONE MANUALMENTE:');
@@ -6942,7 +6940,6 @@
                 return null;
             }
         }
-        
         // Calcular desconto do cupom
         function calculateCouponDiscount(coupon) {
             const cartTotal = calculateCartTotal();
@@ -7293,7 +7290,6 @@
                 debugLog('💰 Switcher de troco DESATIVADO - campo de valor oculto e resetado');
             }
         }
-        
         /**
          * Configura o campo de troco com validação
          */
@@ -7926,7 +7922,6 @@
         }
         // Variável para controlar o timeout de busca do bairro no modo CEP
         let cepNeighborhoodSearchTimeout = null;
-        
         /**
          * Manipula mudanças no campo de bairro para recalcular taxa de delivery
          * Versão aprimorada com debounce e busca direta na planilha
@@ -8262,7 +8257,6 @@
             
             debugLog('✅ Spinner removido do campo de bairro');
         }
-        
         /**
          * Mostra autocomplete de bairros
          */
@@ -8611,7 +8605,6 @@
                 }, 1000);
             }
         }
-        
         /**
          * Função para limpar taxa de entrega
          */
@@ -8922,7 +8915,6 @@
                 updateContinueButtonState(isValid, neighborhood);
             }, 800);
         }
-
         /**
          * Executa a busca real por bairro
          */
@@ -9965,6 +9957,32 @@
             if (typeof debugLog === 'function') {
                 debugLog('Formatted message:', message);
             }
+
+            // Upsert pedido no backend (Apps Script) para rastreio
+            try {
+                const apiUrl = (envioConfig.tracking_api_url || '').trim();
+                if (apiUrl && orderData.orderId) {
+                    const orderSummaryAddress = (orderData.deliveryType === 'delivery' && orderData.address && orderData.address.street)
+                        ? (orderData.address.isManual ? `${orderData.address.street} ${orderData.address.neighborhood || ''} ${orderData.address.city || ''}`.trim() : `${orderData.address.street}, ${orderData.address.number || ''} - ${orderData.address.neighborhood || ''}, ${orderData.address.city || ''} - ${orderData.address.state || ''}`)
+                        : '';
+                    const upsertParams = new URLSearchParams({
+                        api: 'tracking',
+                        action: 'upsert',
+                        order_id: orderData.orderId,
+                        cliente: orderData.customerName || '',
+                        endereco: orderSummaryAddress,
+                        data_hora: new Date().toISOString(),
+                        status: 'Pedido criado',
+                        whatsapp: orderData.customerWhatsApp || '',
+                        delivery_type: orderData.deliveryType || ''
+                    });
+                    const url = `${apiUrl.replace(/\/?$/, '')}?${upsertParams.toString()}`;
+                    debugLog('Upsert pedido (tracking):', url);
+                    fetch(url, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(() => {});
+                }
+            } catch (e) {
+                console.warn('Falha ao upsert pedido tracking:', e);
+            }
             
             // Don't clear cart here - only clear after successful webhook/WhatsApp send
             
@@ -9986,6 +10004,14 @@
         
         // Format order message
         function formatOrderMessage(restaurantName) {
+            try {
+                if (!orderData.orderId) {
+                    const epoch = Date.now().toString(36).toUpperCase();
+                    const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+                    orderData.orderId = `PD-${epoch}-${rand}`;
+                }
+            } catch (_) {}
+
             if (typeof debugLog === 'function') {
                 debugLog('=== DEBUG FORMAT ORDER MESSAGE ===');
                 debugLog('restaurantName:', restaurantName);
@@ -10193,6 +10219,21 @@
                 message += `━━━━━━━━━━━━━━\n`;
             }
             
+            // Tracking info when delivery
+            try {
+                const envioConfig = getEnvioConfig();
+                if (orderData.deliveryType === 'delivery') {
+                    const trackingBase = envioConfig.tracking_url_base || '';
+                    const trackingLink = trackingBase ? `${trackingBase.replace(/\/?$/, '/')}${encodeURIComponent(orderData.orderId)}` : '';
+                    if (orderData.orderId) {
+                        message += `\n🆔 *ID do Pedido:* ${orderData.orderId}\n`;
+                    }
+                    if (trackingLink) {
+                        message += `🔗 *Acompanhe seu pedido:* ${trackingLink}\n`;
+                    }
+                }
+            } catch (_) {}
+
             // Payment info (only for pickup, delivery, default AND if payment field is enabled AND if there are priced items)
             const checkoutConfig = getCheckoutConfig();
             const deliveryTypesWithPayment = ['pickup', 'delivery', 'default'];
@@ -10236,7 +10277,6 @@
                     message += `━━━━━━━━━━━━━━\n`;
                 }
             }
-            
             // Notes
             if (orderData.notes) {
                 message += `\n📝 *Observações:*\n${orderData.notes}\n`;
@@ -10491,7 +10531,8 @@
                 tableNumber: '',
                 paymentMethod: '',
                 changeAmount: '',
-                notes: ''
+                notes: '',
+                orderId: ''
             };
             
             // 3. Reset taxa de delivery
@@ -11230,7 +11271,6 @@
                 }
             }
         }
-        
         // Clear search
         function clearSearch() {
             const searchInput = document.getElementById('search');
@@ -11560,7 +11600,6 @@
             const mins = minutes % 60;
             return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
         }
-
         function checkIfOpen(schedule, currentTime) {
             // Get time periods - new format with Período 1, 2, 3
             const periods = [
@@ -11909,7 +11948,6 @@
         /**
          * ===== FUNÇÕES MODAL ESTABELECIMENTO FECHADO =====
          */
-        
         /**
          * Mostra modal de estabelecimento fechado
          */
@@ -12234,7 +12272,6 @@
             // Limpar QR Code gerado
             generatedQRCode = null;
         }
-        
         /**
          * Copia a URL do cardápio para a área de transferência
          */
@@ -12573,7 +12610,6 @@
             background-color: #3b82f6;
             color: white;
         }
-
         .notification-close {
             background: none;
             border: none;
@@ -12899,7 +12935,6 @@
             return false;
         }
     }
-    
     /**
      * Carregar dados do localStorage com verificação de versão e expiração
      */
@@ -13245,7 +13280,6 @@
         
         return cleaned;
     }
-    
     /**
      * Obter estatísticas do localStorage
      */
