@@ -1860,13 +1860,13 @@ function loadInitialData() {
 
         // Populate all screens with data
         function populateAllScreens() {
-            populateItens();
-            populateCategorias();
-            populateCupons();
-            populateConfig();
-            populateBairros();
-            populateHorarios();
-            populatePedidos();
+            try { populateItens(); } catch (e) { console.error('populateItens erro:', e); }
+            try { populateCategorias(); } catch (e) { console.error('populateCategorias erro:', e); }
+            try { populateCupons(); } catch (e) { console.error('populateCupons erro:', e); }
+            try { populateConfig(); } catch (e) { console.error('populateConfig erro:', e); }
+            try { populateBairros(); } catch (e) { console.error('populateBairros erro:', e); }
+            try { populateHorarios(); } catch (e) { console.error('populateHorarios erro:', e); }
+            try { populatePedidos(); } catch (e) { console.error('populatePedidos erro:', e); }
         }
 
         // Populate items screen
@@ -1875,7 +1875,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('itensEmpty');
             const countElement = document.getElementById('itensCount');
             
-            const data = sourceData || currentData['Itens'] || [];
+            const base = sourceData || currentData && currentData['Itens'];
+            const data = Array.isArray(base) ? base : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -1935,7 +1936,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('categoriasEmpty');
             const countElement = document.getElementById('categoriasCount');
             
-            const data = sourceData || currentData['Categorias'] || [];
+            const base = sourceData || currentData && currentData['Categorias'];
+            const data = Array.isArray(base) ? base : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -1989,7 +1991,8 @@ function loadInitialData() {
             const emptyState = document.getElementById('bairrosEmpty');
             const countElement = document.getElementById('bairrosCount');
             
-            const data = sourceData || currentData['Bairros'] || [];
+            const baseB = sourceData || currentData && currentData['Bairros'];
+            const data = Array.isArray(baseB) ? baseB : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2044,7 +2047,8 @@ function populateCupons(sourceData) {
   const emptyState = document.getElementById('cuponsEmpty');
   const countElement = document.getElementById('cuponsCount');
 
-  const data = sourceData || currentData['Cupons'] || [];
+  const baseC = sourceData || currentData && currentData['Cupons'];
+  const data = Array.isArray(baseC) ? baseC : [];
   const items = data.slice(1); // Pula cabeçalho
 
   if (items.length === 0) {
@@ -2111,7 +2115,8 @@ function populateCupons(sourceData) {
             const emptyState = document.getElementById('configEmpty');
             const countElement = document.getElementById('configCount');
             
-            const data = sourceData || currentData['Config'] || [];
+            const baseCfg = sourceData || currentData && currentData['Config'];
+            const data = Array.isArray(baseCfg) ? baseCfg : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2159,7 +2164,8 @@ function populateCupons(sourceData) {
             const emptyState = document.getElementById('horariosEmpty');
             const countElement = document.getElementById('horariosCount');
             
-            const data = sourceData || currentData['Horários'] || [];
+            const baseH = sourceData || currentData && currentData['Horários'];
+            const data = Array.isArray(baseH) ? baseH : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
@@ -2210,7 +2216,8 @@ function populateCupons(sourceData) {
             const emptyState = document.getElementById('pedidosEmpty');
             const countElement = document.getElementById('pedidosCount');
             
-            const data = sourceData || currentData['Pedidos'] || [];
+            const base = sourceData || currentData && currentData['Pedidos'];
+            const data = Array.isArray(base) ? base : [];
             const items = data.slice(1); // Skip header row
             
             if (items.length === 0) {
